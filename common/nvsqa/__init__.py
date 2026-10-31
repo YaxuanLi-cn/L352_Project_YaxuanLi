@@ -1,0 +1,3 @@
+import paths as _P
+PROJECT_ROOT = _P.ROOT
+DATA_ROOT = _P.DATASETS
