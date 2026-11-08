@@ -1,0 +1,19 @@
+name: selftest
+runs_root: data/experiments/e4_self_overrating/selftest/runs
+ckpt_root: data/experiments/e4_self_overrating/stage_a_ckpt
+stimuli_root: data/experiments/e4_self_overrating/selftest/stimuli
+results_dir: records/e4_self_overrating/selftest/results
+scenes: [gsqa/truck]
+seeds: [0]
+seed_scene: null
+seed_scene_seeds: [0]
+stage_a_steps: 30000
+stage_b_steps: 200
+log_every: 100
+pure: [l1]
+mixed: [l2, flip]
+train_subset: 24
+image_metrics: [psnr, lpips_alex]
+stimuli: true
+stimuli_seeds: [0]
+ckpt_half: false

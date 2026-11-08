@@ -1,0 +1,19 @@
+name: smoke
+runs_root: data/experiments/e4_self_overrating/smoke/runs
+ckpt_root: data/experiments/e4_self_overrating/stage_a_ckpt
+stimuli_root: data/experiments/e4_self_overrating/smoke/stimuli
+results_dir: records/e4_self_overrating/smoke/results
+scenes: [gsqa/truck]
+seeds: [0]
+seed_scene: null
+seed_scene_seeds: [0]
+stage_a_steps: 30000
+stage_b_steps: 1000
+log_every: 250
+pure: [lpips_alex]
+mixed: [cvvdp]
+train_subset: 24
+image_metrics: [l1, mse, psnr, ssim, ms_ssim, lpips_vgg, lpips_alex, dists, flip, cvvdp_image, dreamsim, fsim, vif]
+stimuli: true
+stimuli_seeds: [0]
+ckpt_half: false

@@ -1,0 +1,19 @@
+name: full
+runs_root: data/experiments/e4_self_overrating/original_run/runs
+ckpt_root: data/experiments/e4_self_overrating/stage_a_ckpt
+stimuli_root: data/experiments/e4_self_overrating/original_run/stimuli
+results_dir: records/e4_self_overrating/original_run/results
+scenes: [gsqa/truck, gsqa/train, gsqa/playground2, gsqa/flowers, mip360/kitchen, mip360/bonsai, mip360/garden, mip360/bicycle]
+seeds: [0]
+seed_scene: gsqa/truck
+seed_scene_seeds: [0, 1, 2]
+stage_a_steps: 30000
+stage_b_steps: 10000
+log_every: 2500
+pure: [l1, l2, dssim, msssim, lpips_vgg, lpips_alex, dists, flip, cvvdp]
+mixed: [l2, msssim, lpips_vgg, lpips_alex, dists, flip, cvvdp]
+train_subset: 24
+image_metrics: [l1, mse, psnr, ssim, ms_ssim, lpips_vgg, lpips_alex, dists, flip, cvvdp_image, dreamsim, fsim, vif]
+stimuli: true
+stimuli_seeds: [0]
+ckpt_half: false

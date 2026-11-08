@@ -1,0 +1,22 @@
+name: rerun
+runs_root: data/experiments/e4_self_overrating/rerun/runs
+stimuli_root: data/experiments/e4_self_overrating/rerun/stimuli
+ckpt_root: data/experiments/e4_self_overrating/rerun/ckpt
+base_ckpt_root: data/experiments/e4_self_overrating/stage_a_ckpt
+orig_runs_root: data/experiments/e4_self_overrating/original_run/runs
+views_dir: data/experiments/e4_self_overrating/rerun/views
+scenes: [gsqa/truck, gsqa/train, gsqa/playground2, gsqa/flowers, mip360/kitchen, mip360/bonsai, mip360/garden, mip360/bicycle]
+seeds: [0]
+seed_scene: gsqa/truck
+seed_scene_seeds: [0, 1, 2]
+stage_b_steps: 10000
+log_every: 2500
+pure: [l1, l2, dssim, msssim, lpips_vgg, lpips_alex, dists, flip, cvvdp]
+mixed: [l2, msssim, lpips_vgg, lpips_alex, dists, flip, cvvdp]
+train_subset: 24
+image_metrics: [l1, mse, psnr, ssim, ms_ssim, lpips_vgg, lpips_alex, dists, flip, cvvdp_image, dreamsim, fsim, vif]
+png_compression: 3
+ckpt_fp16_delta: [mip360/bicycle, mip360/garden]
+max_heldout_views: 60
+train_views: 30
+train_view_seed: 0
