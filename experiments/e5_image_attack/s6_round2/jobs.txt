@@ -1,0 +1,16 @@
+gsqa/truck multi 0.2
+gsqa/flowers multi 0.2
+gsqa/playground2 multi 0.2
+gsqa/train multi 0.2
+gsqa/truck multi 0.8
+gsqa/flowers multi 0.8
+gsqa/playground2 multi 0.8
+gsqa/train multi 0.8
+gsqa/truck flip 0.4
+gsqa/flowers flip 0.4
+gsqa/playground2 flip 0.4
+gsqa/train flip 0.4
+gsqa/truck multi 0.05
+gsqa/flowers multi 0.05
+gsqa/playground2 multi 0.05
+gsqa/train multi 0.05

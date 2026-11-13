@@ -1,0 +1,38 @@
+{
+ "gsqa_truck": {
+  "scene": "gsqa/truck",
+  "fps": 30.0,
+  "frames": 300,
+  "y": 69,
+  "x": 80,
+  "height": 384,
+  "width": 576
+ },
+ "gsqa_train": {
+  "scene": "gsqa/train",
+  "fps": 30.0,
+  "frames": 300,
+  "y": 69,
+  "x": 272,
+  "height": 384,
+  "width": 576
+ },
+ "gsqa_playground2": {
+  "scene": "gsqa/playground2",
+  "fps": 25.0,
+  "frames": 250,
+  "y": 69,
+  "x": 80,
+  "height": 384,
+  "width": 576
+ },
+ "gsqa_flowers": {
+  "scene": "gsqa/flowers",
+  "fps": 25.0,
+  "frames": 252,
+  "y": 69,
+  "x": 272,
+  "height": 384,
+  "width": 576
+ }
+}

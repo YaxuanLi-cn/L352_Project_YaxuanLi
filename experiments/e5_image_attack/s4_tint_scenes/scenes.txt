@@ -1,0 +1,8 @@
+# scene  declared_GPU_MiB  seconds_needed_for_its_three_levels   (order: fastest first, see plan.md)
+gsqa/flowers 7500 1050
+gsqa/playground2 7500 1050
+gsqa/train 7500 1050
+mip360/kitchen 12000 1800
+mip360/bicycle 15000 1800
+mip360/garden 14500 1800
+mip360/bonsai 11000 1800

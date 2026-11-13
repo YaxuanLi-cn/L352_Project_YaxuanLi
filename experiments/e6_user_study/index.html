@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>图像质量比较</title>
+<style>
+  /* 声明页面按深色配色方案渲染：滚动条、输入框等浏览器自带部件的默认外观用深色 */
+  :root { color-scheme: dark; }
+  /* 整个页面：去掉默认的边距；背景用中性灰 #808080（图像质量实验常用，画面周围不抢眼）；文字接近黑色；字体优先用各系统自带的中文字体 */
+  html, body { margin: 0; padding: 0; background: #808080; color: #111; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; }
+  /* 说明页和结束页：居中的一栏，最宽 720px，浅色底，至少占满一屏高（100vh），行距 1.6 便于阅读；box-sizing 让内边距算在高度之内 */
+  #intro, #end { max-width: 720px; margin: 0 auto; padding: 18px 16px 40px; background: #f4f4f2; min-height: 100vh; box-sizing: border-box; line-height: 1.6; }
+  /* 这两页的标题上方少留一点空 */
+  #intro h2, #end h2 { margin-top: 6px; }
+  /* 英文译文：灰色小字，跟在每段中文后面 */
+  .en { color: #555; font-size: 13px; }
+  /* 所有按钮的基本样子：16px 的字、细边框、圆角、浅灰底；鼠标移上去变成手形；去掉手机上点按时浏览器加的高亮色块 */
+  button { font-size: 16px; border: 1px solid #333; border-radius: 6px; padding: 9px 14px; background: #f2f2f2; color: #111; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  /* 不能点的按钮：变淡，鼠标恢复成普通箭头（A、B 都看过之前，作答按钮就是这个样子） */
+  button:disabled { opacity: .35; cursor: default; }
+  /* “开始”按钮：更大，蓝底白字 */
+  #go { font-size: 18px; padding: 12px 34px; background: #1f6fd0; color: #fff; border-color: #1f6fd0; }
+  /* 答题页默认不显示（一开始显示的是说明页）；显示时内容居中 */
+  #trial { display: none; text-align: center; padding: 4px 0 10px; }
+  /* 加上 on 这个 class 之后答题页才显示（点“开始”后由脚本加上） */
+  #trial.on { display: block; }
+  /* 以下六条带 body.land 的规则只在手机横屏时生效：窗口宽大于高、而且高度不到 620px 时，脚本里的 fit() 会给 body 加上 land 这个 class。 */
+  /* 横屏时答题页改成左右排：画面在左、按钮栏在右，整体正好占一屏高并上下居中，不用滚动 */
+  body.land #trial.on { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 2px 4px; height: 100vh; box-sizing: border-box; }
+  /* 横屏时右边的按钮栏：里面的东西竖着排，宽度固定 158px，不伸缩 */
+  body.land #side { display: flex; flex-direction: column; gap: 6px; width: 158px; flex: 0 0 158px; }
+  /* 横屏时切换按钮和作答按钮都竖着排，外边距去掉、间距收紧 */
+  body.land #tabs, body.land #ans { flex-direction: column; margin: 0; gap: 6px; }
+  /* 横屏时每个按钮都占满按钮栏的宽度，内边距和字小一点 */
+  body.land #tabs button, body.land #ans button { min-width: 0; width: 100%; padding: 7px 4px; font-size: 14px; }
+  /* 横屏时进度条的两项竖着排并居中，字更小 */
+  body.land #bar { padding: 0; font-size: 12px; flex-direction: column; align-items: center; gap: 2px; }
+  /* 横屏时提示文字更小 */
+  body.land #hint { font-size: 11px; margin-top: 2px; }
+  /* 进度条（竖屏和电脑上）：进度在左、“图像 / 视频”在右，两端对齐；最宽 420px 并居中 */
+  #bar { color: #111; font-size: 13px; padding: 6px 8px 2px; display: flex; justify-content: space-between; max-width: 420px; margin: 0 auto; }
+  /* 舞台（显示画面的区域）：水平居中、黑底；relative 让里面的标签和“加载中”能相对它定位；行高设成 0，舞台的高度就正好等于画面的高度；横屏时不伸缩；宽度由脚本的 fit() 设定 */
+  #stage { position: relative; margin: 0 auto; background: #000; line-height: 0; flex: 0 0 auto; }
+  /* 舞台里的图片和视频：宽度撑满舞台，高度按比例 */
+  #stage img, #stage video { width: 100%; height: auto; display: block; }
+  /* 参考图、A、B 三个画面（class 是 m）都放在舞台里，默认全部隐藏 */
+  #stage .m { display: none; }
+  /* 只有带 on 的那一个显示出来：三个画面出现在同一个位置，切换就是原地替换 */
+  #stage .m.on { display: block; }
+  /* 画面左上角的小标签（半透明黑底白字），标明现在显示的是参考图、A 还是 B */
+  #tag { position: absolute; left: 6px; top: 6px; background: rgba(0,0,0,.62); color: #fff; font-size: 14px; line-height: 1.2; padding: 3px 8px; border-radius: 4px; }
+  /* 三个切换按钮横着排成一行并居中 */
+  #tabs { margin: 8px auto 4px; display: flex; gap: 8px; justify-content: center; }
+  /* 切换按钮至少 86px 宽 */
+  #tabs button { min-width: 86px; }
+  /* 正在显示的那个画面对应的切换按钮：黑底白字 */
+  #tabs button.sel { background: #222; color: #fff; }
+  /* 两个作答按钮横着排并居中，屏幕太窄放不下时换行 */
+  #ans { margin: 10px auto 0; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  /* 作答按钮：蓝底白字，至少 150px 宽，和切换按钮区分开 */
+  #ans button { background: #1f6fd0; color: #fff; border-color: #1f6fd0; min-width: 150px; }
+  /* 按钮下面的提示文字；预留 18px 的高度，提示出现或消失时页面不会跳动 */
+  #hint { font-size: 13px; color: #111; margin-top: 8px; min-height: 18px; }
+  /* “加载中”的文字：白字，横向铺满舞台（left 和 right 都是 0），离舞台顶部 45% */
+  #loading { position: absolute; left: 0; right: 0; top: 45%; color: #fff; font-size: 14px; line-height: 1.3; }
+  /* 结束页的留言框：和页面一样宽，70px 高 */
+  textarea { width: 100%; box-sizing: border-box; height: 70px; font-size: 14px; }
+  /* 说明页的列表：左边缩进 20px */
+  ul { padding-left: 20px; }
+</style>
+</head>
+<body>
+<div id="intro">
+  <h2>图像质量比较实验</h2>
+  <p>谢谢参加！整个过程约 8–10 分钟。<br><span class="en">Thank you for taking part. The study takes about 8–10 minutes.</span></p>
+  <ul>
+    <li>每一题有三幅画面：<b>参考图</b>、<b>A</b>、<b>B</b>。A 和 B 是同一个视角的两种渲染结果。<br>
+        <span class="en">Each trial has three pictures of the same view: the reference, A and B.</span></li>
+    <li>点按钮在三者之间<b>来回切换</b>，然后选出 A 和 B 中<b>哪一个更接近参考图</b>。<br>
+        <span class="en">Switch between them with the buttons, then choose which of A and B is closer to the reference.</span></li>
+    <li>没有时间限制；A 和 B 都至少看过一次之后才能作答。看不出差别时请凭感觉选。<br>
+        <span class="en">No time limit. You must look at both A and B before answering. If you see no difference, guess.</span></li>
+    <li>最后几题是<b>视频</b>（循环播放），做法相同。<br><span class="en">The last trials are videos (looping); same task.</span></li>
+    <li>建议用<b>电脑</b>；用手机请<b>横屏</b>，并把屏幕亮度调高。电脑键盘：<b>R</b> = 参考图，<b>1</b> = A，<b>2</b> = B。<br>
+        <span class="en">A computer is best; on a phone please use landscape and full brightness. Keys: R, 1, 2.</span></li>
+    <li>不收集个人信息，只记录你的选择、用时和屏幕尺寸。<br><span class="en">No personal data are collected; only your choices, timing and screen size.</span></li>
+  </ul>
+  <p style="text-align:center"><button id="go">开始 Start</button></p>
+  <p id="err" style="color:#b00"></p>
+</div>
+<div id="trial">
+  <div id="stage"><div id="tag"></div><div id="loading">加载中… loading</div></div>
+  <div id="side">
+    <div id="bar"><span id="prog"></span><span id="part"></span></div>
+    <div id="tabs">
+      <button id="tR">参考图 R</button>
+      <button id="tA">A</button>
+      <button id="tB">B</button>
+    </div>
+    <div id="ans">
+      <button id="cA" disabled>A 更接近参考图</button>
+      <button id="cB" disabled>B 更接近参考图</button>
+    </div>
+    <div id="hint"></div>
+  </div>
+</div>
+<div id="end" style="display:none">
+  <h2>完成，谢谢！ Done, thank you!</h2>
+  <p>如果愿意，可以留一句话（看到了什么样的差别、用的什么设备等）：<br><span class="en">Optional comment (what differences you noticed, your device):</span></p>
+  <textarea id="comment"></textarea>
+  <p style="text-align:center"><button id="send">提交 Submit</button></p>
+  <p id="sent"></p>
+</div>
+<script>
+// 整个脚本包在一个立即执行的函数里，里面的变量不会漏到全局
+(function () {
+  // 从地址栏的路径 /s/密钥/ 里取出密钥（一串十六进制字符）；取不到时 key 是 undefined
+  var key = (location.pathname.match(/\/s\/([a-f0-9]+)/) || [])[1];
+  // 服务器接口的地址前缀：每个接口的路径里都带着密钥，密钥不对服务器不认
+  var api = '/api/' + key + '/';
+  // 页面的状态。pid：服务器分配的参与者编号；trials：服务器发来的试次列表；idx：现在做到第几题（从 0 数，-1 表示还没开始）；
+  // cur：当前这一题的状态（已经作答、等服务器确认时是 null）；hidden：这一题期间页面被切到后台几次；cache：已经创建的图片和视频元素
+  var pid = null, trials = [], idx = -1, cur = null, hidden = 0, cache = {};
+  // 简写：按 id 取页面上的元素
+  var $ = function (id) { return document.getElementById(id); };
+  // 舞台元素，后面反复用到
+  var stage = $('stage');
+  // 向服务器发一个 POST 请求。path：接口名（start、answer、done）；body：要发的数据；cb：成功后调用的函数；tries：已经重试了几次
+  function post(path, body, cb, tries) {
+    // 第一次调用时不传 tries，当作 0
+    tries = tries || 0;
+    // 新建一个请求对象
+    var x = new XMLHttpRequest();
+    // 用 POST 方法，地址是接口前缀加接口名
+    x.open('POST', api + path);
+    // 告诉服务器请求体是 JSON
+    x.setRequestHeader('Content-Type', 'application/json');
+    // 20 秒（20000 毫秒）没有回音算超时
+    x.timeout = 20000;
+    // 收到回复时：状态码是 200 就把回复解析成 JSON 交给 cb（没传 cb 就不调），其他状态码当作失败，去重试
+    x.onload = function () { if (x.status === 200) { cb && cb(JSON.parse(x.responseText)); } else { retry(); } };
+    // 网络错误或超时也去重试
+    x.onerror = x.ontimeout = retry;
+    // 失败后的处理
+    function retry() {
+      // 最多再试 4 次，等待时间一次比一次长（1.5 秒、3 秒、4.5 秒、6 秒），然后用同样的内容重发
+      if (tries < 4) { setTimeout(function () { post(path, body, cb, tries + 1); }, 1500 * (tries + 1)); }
+      // 4 次重试都失败：在答题页的提示处和说明页的出错处都显示“网络出错”
+      else { $('hint').textContent = '网络出错，请检查网络后重试 / network error'; $('err').textContent = '网络出错 / network error'; }
+    }
+    // 把数据转成 JSON 文本发出去
+    x.send(JSON.stringify(body));
+  }
+  // 取一个刺激对应的页面元素（图片或视频），已经有就直接用，没有就创建（创建时浏览器就开始下载）。t：试次；which：'ref'、'A' 或 'B'
+  function media(t, which) {
+    // name：文件名（服务器给的十六进制串）；id：缓存里的键，由题号加 which 拼成，例如 "3A"
+    var name = t[which], id = t.i + which;
+    // 已经创建过（例如做上一题时预加载的）就直接返回，不重复下载
+    if (cache[id]) { return cache[id]; }
+    // 要创建的元素
+    var el;
+    // 视频试次
+    if (t.part === 'video') {
+      // 创建一个视频元素
+      el = document.createElement('video');
+      // 静音（静音的视频浏览器才允许不经点击就播放）、循环播放、尽量提前把整段下载好
+      el.muted = true; el.loop = true; el.preload = 'auto';
+      // 让视频在页面里原地播放，不被手机浏览器拉成全屏；三个属性分别是标准写法、旧版 iOS 的写法、腾讯 X5 内核（微信等）的写法
+      el.setAttribute('playsinline', ''); el.setAttribute('webkit-playsinline', ''); el.setAttribute('x5-playsinline', '');
+      // 也是给 X5 内核的：用页面内的 H5 播放器，不用它自带的全屏播放器
+      el.setAttribute('x5-video-player-type', 'h5');
+      // 设置地址，浏览器开始向服务器的 /stim/ 要这个文件
+      el.src = '/stim/' + name;
+    // 否则是图像试次
+    } else {
+      // 创建一个图片元素
+      el = new Image();
+      // 要求同步解码：切换到这张图时一次显示完整，不会先空白一下
+      el.decoding = 'sync';
+      // 设置地址，开始下载
+      el.src = '/stim/' + name;
+    }
+    // 加上 m 这个 class：样式表里 m 默认隐藏，再加上 on 才显示
+    el.className = 'm';
+    // 这个文件已经重新请求了几次
+    el._tries = 0;
+    // 下载失败时自动重新请求，最多 8 次，间隔越来越长
+    el.onerror = function () {
+      // 已经重试了 8 次还不行：提示参与者检查网络并刷新页面，不再试
+      if (el._tries >= 8) { $('hint').textContent = '图片加载失败，请检查网络后刷新页面 / loading failed, please reload'; return; }
+      // 重试次数加一
+      el._tries += 1;
+      // 等一会儿再试
+      setTimeout(function () {
+        // 等的这段时间里元素已经被清出缓存（这一题已经做完）就不用再试
+        if (cache[id] !== el) { return; }
+        // 先去掉地址
+        el.removeAttribute('src');
+        // 再设回同一个地址，浏览器就会重新下载
+        el.src = '/stim/' + name;
+        // 视频还要调用 load() 才会真的重新加载；个别浏览器在这里会报错，忽略
+        if (el.tagName === 'VIDEO') { try { el.load(); } catch (e) {} }
+      // 等待的时间：第 n 次重试前等 0.8 × n 秒
+      }, 800 * el._tries);
+    };
+    // 放进缓存
+    cache[id] = el;
+    // 返回这个元素
+    return el;
+  }
+  // 按窗口大小决定舞台（画面）的显示宽度，让整幅画面和所有按钮不用滚动就都在屏幕里
+  function fit() {
+    // 还没开始或者已经做完时没有画面，不用算
+    if (idx < 0 || idx >= trials.length) { return; }
+    // video：这一题是不是视频；natW：刺激原本的宽度（视频 576、图像 928 像素）；aspect：宽高比（视频 576 × 384，图像 928 × 522）
+    var video = trials[idx].part === 'video', natW = video ? 576 : 928, aspect = video ? 576 / 384 : 928 / 522;
+    // 是否按“手机横屏”来排：窗口宽大于高，而且高度不到 620 像素
+    var land = window.innerWidth > window.innerHeight && window.innerHeight < 620;
+    // 是就给 body 加上 land 这个 class（按钮栏挪到画面右边），不是就去掉
+    document.body.classList.toggle('land', land);
+    // 画面可用的宽度：横屏时要给右边的按钮栏留出 176 像素，否则整个窗口的宽度都可用
+    var availW = land ? window.innerWidth - 176 : window.innerWidth;
+    // 画面可用的高度：横屏时几乎是整个窗口的高度，否则要给下方的进度条和按钮留出 150 像素
+    var availH = land ? window.innerHeight - 6 : window.innerHeight - 150;
+    // 不另外限制最大宽度，宽度完全由下一行决定
+    stage.style.maxWidth = 'none';
+    // 舞台宽度取三者中最小的：原本的宽度（所以画面从不放大）、可用宽度、可用高度（至少按 180 像素算）乘以宽高比
+    stage.style.width = Math.floor(Math.min(natW, availW, Math.max(180, availH) * aspect)) + 'px';
+  }
+  // 窗口大小变了就重新算
+  window.addEventListener('resize', fit);
+  // 手机转屏后也重新算；等 250 毫秒，让浏览器先把新的窗口尺寸更新好
+  window.addEventListener('orientationchange', function () { setTimeout(fit, 250); });
+  // 判断一个画面是不是已经可以显示。图片：已经下载完，而且确实是一张图（原始宽度大于 0，下载失败时宽度是 0）。视频：已经有当前帧的数据（readyState 至少是 2）；
+  // 另外，有些手机浏览器在调用 play() 之前不会预先加载视频，所以这一题建立满 4 秒之后，视频也一律算作准备好了
+  function ready(el) { return el.tagName === 'VIDEO' ? (el.readyState >= 2 || (cur && Date.now() - cur.created > 4000)) : (el.complete && el.naturalWidth > 0); }
+  // 预加载第 i 题的三个画面：把元素创建出来，浏览器就在后台开始下载，轮到这一题时不用等；i 超出题数（已经是最后一题）就什么都不做
+  function preload(i) { if (i < trials.length) { ['ref', 'A', 'B'].forEach(function (w) { media(trials[i], w); }); } }
+  // 把舞台上显示的画面换成 which（'ref'、'A' 或 'B'）；点切换按钮或按键时调用
+  function show(which) {
+    // 没有正在进行的题就不响应
+    if (!cur) { return; }
+    // t：当前试次；el：要显示的那个元素
+    var t = trials[idx], el = cur.els[which];
+    // 三个画面必须都加载好才允许切换：保证每次切换都是立刻完成的，不会出现其中一个还没下载完的情况
+    if (!ready(cur.els.ref) || !ready(cur.els.A) || !ready(cur.els.B)) { return; }
+    // 视频要接着播放的时间点，默认从头
+    var time = 0;
+    // 视频试次，而且之前已经在显示某一段：记下它播到了哪里，并把它暂停
+    if (t.part === 'video' && cur.on) { time = cur.els[cur.on].currentTime; cur.els[cur.on].pause(); }
+    // 三个元素里只给要显示的那个加上 on，另外两个去掉 on（隐藏）
+    ['ref', 'A', 'B'].forEach(function (w) { cur.els[w].classList.toggle('on', w === which); });
+    // 视频：新的一段从刚才那一段播到的时间点接着放，切换前后看到的是相机路径上的同一时刻；设置时间出错、播放被浏览器拒绝都忽略
+    if (t.part === 'video') { try { el.currentTime = time; } catch (e) {} var pr = el.play(); if (pr && pr.catch) { pr.catch(function () {}); } }
+    // 确实换了画面（不是重复点同一个）就把切换次数加一
+    if (cur.on !== which) { cur.switches += 1; }
+    // 记下现在显示的是哪个
+    cur.on = which;
+    // 这个画面被查看的次数加一
+    cur.views[which] += 1;
+    // 更新画面左上角的标签
+    $('tag').textContent = which === 'ref' ? '参考图 Reference' : which;
+    // 把对应的切换按钮标成选中（黑底），另外两个取消
+    $('tR').classList.toggle('sel', which === 'ref'); $('tA').classList.toggle('sel', which === 'A'); $('tB').classList.toggle('sel', which === 'B');
+    // A 和 B 是不是都至少看过一次
+    var ok = cur.views.A > 0 && cur.views.B > 0;
+    // 都看过才放开两个作答按钮，否则保持不能点
+    $('cA').disabled = !ok; $('cB').disabled = !ok;
+    // 还没都看过时提示“请先分别看一下 A 和 B”，都看过就清空提示
+    $('hint').textContent = ok ? '' : '请先分别看一下 A 和 B / look at both A and B first';
+  }
+  // 进入下一题（第一次调用就是进入第 1 题）；全部做完就显示结束页
+  function next() {
+    // 题号加一
+    idx += 1;
+    // 清理缓存：键以题号开头（例如 "3A"），题号比当前题小的元素都不再需要；视频先暂停、去掉地址再 load() 一次，让浏览器放掉它占的内存和连接
+    Object.keys(cache).forEach(function (k) { if (parseInt(k, 10) < idx) { var e = cache[k]; if (e.tagName === 'VIDEO') { e.pause(); e.removeAttribute('src'); e.load(); } delete cache[k]; } });
+    // 所有试次都做完了：收起答题页、去掉横屏排版、显示结束页，然后返回
+    if (idx >= trials.length) { $('trial').classList.remove('on'); document.body.classList.remove('land'); $('end').style.display = 'block'; return; }
+    // 当前这一题
+    var t = trials[idx];
+    // 把上一题留在舞台里的画面元素（class 是 m）都拿掉
+    while (stage.querySelector('.m')) { stage.removeChild(stage.querySelector('.m')); }
+    // 建立这一题的状态。els：三个画面的元素；views：各自被看了几次；switches：切换次数；on：正在显示哪个；t0：开始计时的时刻；first：没有用到；created：这一题建立的时刻
+    cur = { els: { ref: media(t, 'ref'), A: media(t, 'A'), B: media(t, 'B') }, views: { ref: 0, A: 0, B: 0 }, switches: 0, on: null, t0: 0, first: null, created: Date.now() };
+    // 把三个元素都放进舞台（这时都是隐藏的）
+    ['ref', 'A', 'B'].forEach(function (w) { stage.appendChild(cur.els[w]); });
+    // 按这一题是图像还是视频重新算舞台的宽度
+    fit();
+    // 更新进度：第几题 / 共几题
+    $('prog').textContent = (idx + 1) + ' / ' + trials.length;
+    // 标明这一题是视频还是图像
+    $('part').textContent = t.part === 'video' ? '视频 video' : '图像 image';
+    // 两个作答按钮先设成不能点
+    $('cA').disabled = true; $('cB').disabled = true;
+    // 显示“加载中”，并清空左上角的标签
+    $('loading').textContent = '加载中… loading'; $('loading').style.display = 'block'; $('tag').textContent = '';
+    // 这一题“页面被切到后台”的次数从 0 开始数
+    hidden = 0;
+    // 记住这一题的状态对象，下面的定时器用它判断自己是不是还属于当前这一题
+    var mine = cur;
+    // 定时检查三个画面是不是都加载好了
+    var wait = setInterval(function () {
+      // 当前题已经不是建立这个定时器的那一题了：停掉定时器
+      if (cur !== mine) { clearInterval(wait); return; }
+      // 等了超过 12 秒还没好（网络慢），而且还没处理过
+      if (Date.now() - cur.created > 12000 && !cur.nudged) {
+        // 标记已经处理过，只做一次
+        cur.nudged = true;
+        // 把提示换成“网络较慢，正在加载”
+        $('loading').textContent = '网络较慢，正在加载… still loading';
+        // 三个画面里已经结束下载却没有内容的图片（也就是下载失败了的），手动触发一次 media() 里的重新请求
+        ['ref', 'A', 'B'].forEach(function (w) { var e = cur.els[w]; if (e.tagName === 'IMG' && e.complete && !e.naturalWidth && e.onerror) { e.onerror(); } });
+      }
+      // 三个画面都准备好了
+      if (ready(cur.els.ref) && ready(cur.els.A) && ready(cur.els.B)) {
+        // 停掉定时器
+        clearInterval(wait);
+        // 隐藏“加载中”
+        $('loading').style.display = 'none';
+        // 从这一刻开始计时：作答用时不包含加载的时间
+        cur.t0 = Date.now();
+        // 每一题都先显示参考图
+        show('ref');
+        // 这次自动显示算看了 1 次参考图，但不算一次切换（上一行的 show 里把切换次数加了一，这里改回 0）
+        cur.views.ref = 1; cur.switches = 0;
+        // 趁参与者看这一题，提前下载下一题的三个画面
+        preload(idx + 1);
+      }
+    // 检查的间隔：120 毫秒
+    }, 120);
+    // 视频试次：对三段视频都调用 load()，让浏览器现在就开始加载；个别浏览器会报错，忽略
+    if (t.part === 'video') { ['ref', 'A', 'B'].forEach(function (w) { try { cur.els[w].load(); } catch (e) {} }); }
+  }
+  // 提交作答；choice 是 'A' 或 'B'
+  function answer(choice) {
+    // 没有正在进行的题（例如刚提交过），或者对应的作答按钮还不能点，就不响应，防止重复提交
+    if (!cur || $('c' + choice).disabled) { return; }
+    // 作答时正显示着的那个画面元素，用来量它在屏幕上的显示宽度
+    var el = cur.els[cur.on || 'ref'];
+    // 要发给服务器的内容：pid、题号 i、选择 choice、用时 rt（毫秒，从三个画面都加载好算起）、各画面的查看次数 views、切换次数 switches、窗口宽度 vw，
+    var body = { pid: pid, i: idx, choice: choice, rt: Date.now() - cur.t0, views: cur.views, switches: cur.switches, vw: window.innerWidth,
+                 // 窗口高度 vh、设备像素比 dpr（取不到按 1）、画面实际显示的宽度 shown_w（CSS 像素）、这一题期间页面被切到后台的次数 hidden
+                 vh: window.innerHeight, dpr: window.devicePixelRatio || 1, shown_w: el.clientWidth, hidden: hidden };
+    // 马上把两个作答按钮设成不能点，防止连点
+    $('cA').disabled = true; $('cB').disabled = true;
+    // 视频试次：把三段视频都暂停
+    if (trials[idx].part === 'video') { ['ref', 'A', 'B'].forEach(function (w) { cur.els[w].pause(); }); }
+    // 这一题结束；cur 设成 null 之后，切换按钮、按键和上面的定时器都不再起作用
+    cur = null;
+    // 把作答发给服务器；服务器确认收到（回 200）之后才进入下一题
+    post('answer', body, function () { next(); });
+  }
+  // 切换按钮“参考图 R”：显示参考图
+  $('tR').onclick = function () { show('ref'); };
+  // 切换按钮 A：显示 A
+  $('tA').onclick = function () { show('A'); };
+  // 切换按钮 B：显示 B
+  $('tB').onclick = function () { show('B'); };
+  // 作答按钮“A 更接近参考图”：提交 A
+  $('cA').onclick = function () { answer('A'); };
+  // 作答按钮“B 更接近参考图”：提交 B
+  $('cB').onclick = function () { answer('B'); };
+  // 键盘快捷键（电脑上用）：只用来切换画面，作答必须点按钮
+  document.addEventListener('keydown', function (e) {
+    // 没有正在进行的题就不响应
+    if (!cur) { return; }
+    // 按下的键，统一转成小写
+    var k = e.key.toLowerCase();
+    // R、0 或空格：显示参考图；preventDefault 让空格键不去滚动页面
+    if (k === 'r' || k === '0' || k === ' ') { show('ref'); e.preventDefault(); }
+    // 1 或 A：显示 A
+    else if (k === '1' || k === 'a') { show('A'); }
+    // 2 或 B：显示 B
+    else if (k === '2' || k === 'b') { show('B'); }
+  });
+  // 页面每被切到后台一次（换标签页、锁屏等），hidden 就加一；它随作答一起上报，说明这一题中途离开过页面
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { hidden += 1; } });
+  // 点“开始”按钮
+  $('go').onclick = function () {
+    // 先把按钮设成不能点，防止点两次、登记成两个参与者
+    $('go').disabled = true;
+    // 报给服务器的设备信息：浏览器标识 ua、屏幕宽高 sw 和 sh、窗口宽高 vw 和 vh，
+    var info = { ua: navigator.userAgent, sw: screen.width, sh: screen.height, vw: window.innerWidth, vh: window.innerHeight,
+                 // 设备像素比 dpr、浏览器语言 lang、是不是触屏设备 touch
+                 dpr: window.devicePixelRatio || 1, lang: navigator.language, touch: ('ontouchstart' in window) };
+    // 向服务器登记；服务器返回参与者编号和试次列表
+    post('start', info, function (r) {
+      // 记下参与者编号和试次列表（每个试次只有题号、图像还是视频、三个文件名）
+      pid = r.pid; trials = r.trials;
+      // 收起说明页，显示答题页
+      $('intro').style.display = 'none'; $('trial').classList.add('on');
+      // 进入第 1 题
+      next();
+    });
+  };
+  // 点结束页的“提交”按钮
+  $('send').onclick = function () {
+    // 按钮设成不能点，防止重复提交
+    $('send').disabled = true;
+    // 把留言发给服务器（服务器同时记下做完的时间），成功后显示“已提交”
+    post('done', { pid: pid, comment: $('comment').value }, function () { $('sent').textContent = '已提交，可以关闭页面了。Submitted — you can close this page.'; });
+  };
+  // 地址里没有密钥（链接不完整）：显示出错信息，并且不让点“开始”
+  if (!key) { $('err').textContent = '链接不完整 / incomplete link'; $('go').disabled = true; }
+// 立即执行上面定义的这个函数
+})();
+</script>
+</body>
+</html>

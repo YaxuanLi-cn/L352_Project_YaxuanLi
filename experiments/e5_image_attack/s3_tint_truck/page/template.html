@@ -1,0 +1,439 @@
+<title>三元组盲测图对</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* 页面图像区使用中性灰底，减少观看时的颜色干扰，并将参考图放在中间、两张候选图放在两侧。 */
+  /* 设置 :root 区域的布局和显示样式。 */
+:root {
+  /* 配置当前样式的 --bg 属性。 */
+  --bg: #e9ebed; --surface: #f7f8f9; --stage: #8c8c8c; --fg: #15181c; --muted: #58616a; --line: #c9ced4;
+  /* 配置当前样式的 --accent 属性。 */
+  --accent: #1d5bb8; --on-accent: #ffffff; --good: #17734a; --bad: #b0271f; --warn: #8a5b00; --chip: #dde1e5;
+  /* 配置当前样式的 --font-body 属性。 */
+  --font-body: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  /* 配置当前样式的 --font-head 属性。 */
+  --font-head: "Space Grotesk", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+}
+  /* 设置 @media (prefers-color-scheme: dark) 区域的布局和显示样式。 */
+@media (prefers-color-scheme: dark) {
+  /* 设置 :root:not([data-theme="light"]) 区域的布局和显示样式。 */
+  :root:not([data-theme="light"]) {
+  /* 配置当前样式的 --bg 属性。 */
+    --bg: #111315; --surface: #1a1d20; --stage: #3d3d3d; --fg: #e7e9ec; --muted: #9aa3ab; --line: #2f353b;
+  /* 配置当前样式的 --accent 属性。 */
+    --accent: #8ab4ff; --on-accent: #0b1220; --good: #62c992; --bad: #ff8f85; --warn: #e2b34a; --chip: #262b30; color-scheme: dark;
+  }
+}
+  /* 设置 :root[data-theme="dark"] 区域的布局和显示样式。 */
+:root[data-theme="dark"] {
+  /* 配置当前样式的 --bg 属性。 */
+  --bg: #111315; --surface: #1a1d20; --stage: #3d3d3d; --fg: #e7e9ec; --muted: #9aa3ab; --line: #2f353b;
+  /* 配置当前样式的 --accent 属性。 */
+  --accent: #8ab4ff; --on-accent: #0b1220; --good: #62c992; --bad: #ff8f85; --warn: #e2b34a; --chip: #262b30; color-scheme: dark;
+}
+  /* 设置 body 区域的布局和显示样式。 */
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+  /* 设置 .wrap 区域的布局和显示样式。 */
+.wrap { max-width: 1680px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 18px; }
+  /* 设置 h1 区域的布局和显示样式。 */
+h1 { font-family: var(--font-head); font-size: 26px; font-weight: 600; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  /* 设置 h2 区域的布局和显示样式。 */
+h2 { font-family: var(--font-head); font-size: 18px; font-weight: 600; margin: 0; }
+  /* 设置 p 区域的布局和显示样式。 */
+p { margin: 0; }
+  /* 设置 .lead 区域的布局和显示样式。 */
+.lead { max-width: 68ch; color: var(--muted); }
+  /* 设置 .lead strong 区域的布局和显示样式。 */
+.lead strong { color: var(--fg); font-weight: 600; }
+  /* 设置 .tabs 区域的布局和显示样式。 */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  /* 设置 .tab 区域的布局和显示样式。 */
+.tab { font: inherit; font-weight: 500; padding: 7px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+  /* 设置 .tab[aria-selected="true"] 区域的布局和显示样式。 */
+.tab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  /* 设置 .tab:focus-visible, .btn:focus-visible, .swap:focus-visible 区域的布局和显示样式。 */
+.tab:focus-visible, .btn:focus-visible, .swap:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  /* 设置 .bar 区域的布局和显示样式。 */
+.bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* 设置 .bar b 区域的布局和显示样式。 */
+.bar b { color: var(--fg); font-weight: 600; }
+  /* 设置 .stage 区域的布局和显示样式。 */
+.stage { background: var(--stage); border-radius: 8px; padding: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 512px)); gap: 14px; justify-content: center; align-items: start; }
+  /* 设置 .stage figure 区域的布局和显示样式。 */
+.stage figure { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  /* 设置 .stage img 区域的布局和显示样式。 */
+.stage img { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; background: #000; image-rendering: auto; }
+  /* 设置 .stage figcaption 区域的布局和显示样式。 */
+.stage figcaption { font-size: 13px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.55); text-align: center; letter-spacing: 0.04em; }
+  /* 设置 @media (max-width: 760px) 区域的布局和显示样式。 */
+@media (max-width: 760px) {
+  /* 设置 .stage 区域的布局和显示样式。 */
+  .stage { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* 设置 .stage .ref 区域的布局和显示样式。 */
+  .stage .ref { grid-column: 1 / -1; order: -1; justify-self: center; width: min(100%, 512px); }
+}
+  /* 设置 .actions 区域的布局和显示样式。 */
+.actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  /* 设置 .btn 区域的布局和显示样式。 */
+.btn { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent); cursor: pointer; min-width: 9.5em; }
+  /* 设置 .btn.ghost 区域的布局和显示样式。 */
+.btn.ghost { background: var(--surface); color: var(--fg); border-color: var(--line); font-weight: 500; }
+  /* 设置 .btn:disabled 区域的布局和显示样式。 */
+.btn:disabled { opacity: .45; cursor: default; }
+  /* 设置 .reveal 区域的布局和显示样式。 */
+.reveal { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  /* 设置 .verdictline 区域的布局和显示样式。 */
+.verdictline { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-weight: 600; }
+  /* 设置 .ok 区域的布局和显示样式。 */
+.ok { color: var(--good); } .no { color: var(--bad); } .dk { color: var(--warn); }
+  /* 设置 .chip 区域的布局和显示样式。 */
+.chip { display: inline-block; padding: 2px 9px; border-radius: 999px; background: var(--chip); font-size: 13px; font-weight: 500; color: var(--fg); }
+  /* 设置 .tablebox 区域的布局和显示样式。 */
+.tablebox { overflow-x: auto; }
+  /* 设置 table 区域的布局和显示样式。 */
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 14px; }
+  /* 设置 th, td 区域的布局和显示样式。 */
+th, td { padding: 5px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  /* 设置 th:first-child, td:first-child 区域的布局和显示样式。 */
+th:first-child, td:first-child { text-align: left; }
+  /* 设置 th 区域的布局和显示样式。 */
+th { font-weight: 600; color: var(--muted); font-size: 12px; letter-spacing: 0.05em; }
+  /* 设置 .note 区域的布局和显示样式。 */
+.note { color: var(--muted); font-size: 13.5px; max-width: 80ch; }
+  /* 设置 .gallery 区域的布局和显示样式。 */
+.gallery { display: flex; flex-direction: column; gap: 22px; }
+  /* 设置 .gitem 区域的布局和显示样式。 */
+.gitem { display: flex; flex-direction: column; gap: 8px; }
+  /* 设置 .ghead 区域的布局和显示样式。 */
+.ghead { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+  /* 设置 .ghead .gt 区域的布局和显示样式。 */
+.ghead .gt { font-weight: 600; }
+  /* 设置 .swap 区域的布局和显示样式。 */
+.swap { font: inherit; font-size: 13px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+  /* 设置 .filters 区域的布局和显示样式。 */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+</style>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>三元组盲测图对</h1>
+    <p class="lead">每一对里，一张来自<strong>原始对照模型</strong>，一张来自<strong>被攻击的模型</strong>；中间是参考图。攻击的做法是守住论文里报告的指标（PSNR，或 PSNR + SSIM，或再加 LPIPS），同时把一个没报告的指标往坏里推。先盲猜哪一张更差，再看答案。图是 512×512 的裁剪，位置按"两张渲染图差别最大的窗口"自动选取。</p>
+  </header>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-test" aria-selected="true">盲测</button>
+    <button class="tab" role="tab" id="tab-score" aria-selected="false">我的结果</button>
+    <button class="tab" role="tab" id="tab-gallery" aria-selected="false">带标注的图集</button>
+    <button class="tab" role="tab" id="tab-ladder" aria-selected="false" hidden>色偏阶梯</button>
+  </div>
+  <section id="view-test" style="display:flex;flex-direction:column;gap:14px">
+    <div class="bar"><span>第 <b id="pos">1</b> / <b id="total">37</b> 对</span><span id="sizehint"></span></div>
+    <div class="stage">
+      <figure><img id="imgL" alt="候选图，左"><figcaption>左</figcaption></figure>
+      <figure class="ref"><img id="imgR0" alt="参考图"><figcaption>参考图</figcaption></figure>
+      <figure><img id="imgRt" alt="候选图，右"><figcaption>右</figcaption></figure>
+    </div>
+    <div class="actions" id="choices">
+      <button class="btn" id="pickL">左边更差</button>
+      <button class="btn ghost" id="pickN">看不出</button>
+      <button class="btn" id="pickR">右边更差</button>
+    </div>
+    <div class="reveal" id="reveal" hidden>
+      <div class="verdictline"><span id="outcome"></span><span class="chip" id="rv-cat"></span><span id="rv-point" style="font-weight:500"></span></div>
+      <div class="tablebox"><table id="rv-table"></table></div>
+      <p class="note">表里是这一个视角整图的数值；"守住了吗"是按场景 20 个视角的均值、相对种子噪声判定的。类别是按指标划的：<b>真实退化</b> = 至少两个独立的指标族证实了变差；<b>疑似对抗样本</b> = 只有被攻击的那个指标自己大幅变差；<b>推不动</b> = 攻击没有让任何指标变差（这类图对应当只有一半猜对）。</p>
+      <div class="actions"><button class="btn" id="next">下一对</button></div>
+    </div>
+    <p class="note" id="done" hidden>37 对都看完了。到"我的结果"看分类统计，或到"带标注的图集"对着答案再看一遍。</p>
+    <p class="note">键盘：← 左边更差，→ 右边更差，↓ 看不出，Enter 下一对。左右位置和出场顺序每次随机。</p>
+  </section>
+  <section id="view-score" hidden style="display:flex;flex-direction:column;gap:14px">
+    <h2>按类别</h2>
+    <div class="tablebox"><table id="sc-cat"></table></div>
+    <h2>按攻击的点</h2>
+    <div class="tablebox"><table id="sc-point"></table></div>
+    <p class="note">每个点只有 2–3 对，单看一个点没有统计意义（3 对全猜中的偶然概率是八分之一）。看类别的合计：27 对"疑似对抗样本"如果每对都选一边，猜对 19 对以上的偶然概率才低于 5%（18 对是 6%）。"推不动"的 4 对是对照，那里的正确率应当在一半上下；如果明显偏离一半，说明两个模型之间还有与攻击无关的可见差别（例如三元组损失里的 LPIPS 项本身让纹理更锐）。</p>
+    <div class="actions" style="justify-content:flex-start"><button class="btn ghost" id="reset">清空记录，重新开始</button></div>
+  </section>
+  <section id="view-gallery" hidden style="display:flex;flex-direction:column;gap:14px">
+    <p class="note">这里直接标出哪张是被攻击的。先做完盲测再看，否则盲测就不盲了。"切换"按钮把对照图原地换成被攻击的图，最容易看出差别在哪里，但它比并排看敏感得多。</p>
+    <div class="filters" id="filters"></div>
+    <div class="gallery" id="gallery"></div>
+  </section>
+  <section id="view-ladder" hidden style="display:flex;flex-direction:column;gap:14px">
+    <p class="note">同一个场景、同一块区域，攻击 DreamSim 的推力 γ 从小到大各一档（守住的三个数是 PSNR、SSIM、LPIPS）。中间那张是同样的损失但不加攻击（γ = 0）的模型，右边是当前这一档。点下面的档位，右边的图原地切换。区域按固定规则选：在"守不住的最弱一档"上，与不加攻击的模型差别最大的视角和窗口。</p>
+    <div class="filters" id="ld-scenes"></div>
+    <div class="stage">
+      <figure><img id="ld-mid" alt="不加攻击的模型"><figcaption id="ld-midcap">不加攻击（γ = 0）</figcaption></figure>
+      <figure class="ref"><img id="ld-ref" alt="参考图"><figcaption>参考图</figcaption></figure>
+      <figure><img id="ld-att" alt="当前档位"><figcaption id="ld-attcap">当前档位</figcaption></figure>
+    </div>
+    <div class="filters" id="ld-levels"></div>
+    <div class="filters"><button class="swap" id="ld-view">换另一个视角</button><button class="swap" id="ld-midswap">左图换成原始对照模型</button></div>
+    <div class="tablebox"><table id="ld-table"></table></div>
+    <p class="note">"判定"按登记的规则：三个数相对原始对照模型变差都小于种子噪声阈值才算守住。"纯色偏"是与不加攻击的模型的渲染图之差经低通（σ = 8 像素）并去掉亮度后的均方根，单位是 8 位灰度级；括号里是它与该场景噪声底之比。truck 上 γ = 0.0125 那一档（纯色偏 1.86 级）是 10 个人都一眼看出的。键盘 ← → 切换档位。</p>
+  </section>
+</div>
+<script>
+  // 准备页面数据、状态或 DOM 访问函数。
+const TRIALS = /*TRIALS*/[]; // 存放构建脚本注入的盲测题目数据。
+  // 准备页面数据、状态或 DOM 访问函数。
+const LADDER = /*LADDER*/null; // 存放可选的色偏阶梯数据。
+  // 准备页面数据、状态或 DOM 访问函数。
+const KEY = "triplet-blind-v1"; // 用固定键名在浏览器本地保存答题进度。
+  // 准备页面数据、状态或 DOM 访问函数。
+const LABEL = {psnr: "PSNR (dB)", ssim: "SSIM", lpips_vgg: "LPIPS-VGG", dists: "DISTS", dreamsim: "DreamSim", flip: "FLIP", cvvdp_image: "ColorVideoVDP (JOD)"}; // 将内部指标名映射为页面表格标签。
+  // 准备页面数据、状态或 DOM 访问函数。
+const HIGHER = {psnr: 1, ssim: 1, cvvdp_image: 1}; // 标记分数越高越好的指标，用于判定方向。
+  // 准备页面数据、状态或 DOM 访问函数。
+const $ = id => document.getElementById(id); // 按元素 id 取页面控件，缩短后续 DOM 更新代码。
+  // 准备页面数据、状态或 DOM 访问函数。
+let state = {order: [], side: {}, answers: {}, i: 0}; // 保存题目顺序、左右位置、答案和当前题号。
+  // 定义一项页面交互或数据呈现操作。
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  // 定义一项页面交互或数据呈现操作。
+function fresh() { const order = shuffle(TRIALS.map(t => t.id)); const side = {}; order.forEach(id => side[id] = Math.random() < 0.5 ? "L" : "R"); return {order, side, answers: {}, i: 0}; }
+  // 定义一项页面交互或数据呈现操作。
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  // 定义一项页面交互或数据呈现操作。
+function load() {
+  // 完成当前视图的状态更新或数据计算。
+  try {
+  // 准备页面数据、状态或 DOM 访问函数。
+    const s = JSON.parse(localStorage.getItem(KEY) || "null");
+  // 根据当前答题或视图状态更新页面。
+    if (s && Array.isArray(s.order) && s.order.length === TRIALS.length && s.order.every(id => TRIALS.some(t => t.id === id))) return s;
+  // 完成当前视图的状态更新或数据计算。
+  } catch (e) {}
+  // 返回当前计算或渲染结果。
+  return fresh();
+}
+  // 准备页面数据、状态或 DOM 访问函数。
+const byId = id => TRIALS.find(t => t.id === id);
+function pointName(t) { return `${t.scene} · ${t.held} · 攻击 ${t.target} · γ = ${t.gamma}` + (t.seed ? ` · 种子 ${t.seed}` : ""); } // 组合场景、守住指标、攻击目标和推力作为点位名称。
+  // 定义一项页面交互或数据呈现操作。
+function fmt(k, v) { return k === "psnr" || k === "cvvdp_image" ? v.toFixed(2) : v.toFixed(4); }
+  // 定义一项页面交互或数据呈现操作。
+function metricTable(t) {
+  // 准备页面数据、状态或 DOM 访问函数。
+  let h = "<tr><th>指标（这一视角）</th><th>对照模型</th><th>被攻击模型</th><th>被攻击的比对照</th></tr>";
+  // 遍历试题、指标或页面选项。
+  for (const k of Object.keys(LABEL)) {
+  // 准备页面数据、状态或 DOM 访问函数。
+    const [c, a] = t.m[k]; const d = a - c; const worse = HIGHER[k] ? d < 0 : d > 0;
+  // 准备页面数据、状态或 DOM 访问函数。
+    const word = Math.abs(d) < 1e-9 ? "相同" : (worse ? "差" : "好");
+    h += `<tr><td>${LABEL[k]}</td><td>${fmt(k, c)}</td><td>${fmt(k, a)}</td><td>${word} ${fmt(k, Math.abs(d))}</td></tr>`; // 将当前指标的对照值、攻击值和变化方向加入表格。
+  }
+  // 返回当前计算或渲染结果。
+  return h;
+}
+  // 定义一项页面交互或数据呈现操作。
+function showTrial() {
+  // 准备页面数据、状态或 DOM 访问函数。
+  const done = state.i >= state.order.length;
+  // 更新页面控件或展示的数据。
+  $("done").hidden = !done; $("choices").hidden = done; $("reveal").hidden = true;
+  // 绑定浏览器事件或读取页面元素。
+  document.querySelector("#view-test .stage").hidden = done;
+  // 更新页面控件或展示的数据。
+  $("total").textContent = TRIALS.length; $("pos").textContent = Math.min(state.i + 1, TRIALS.length);
+  // 根据当前答题或视图状态更新页面。
+  if (done) return;
+  // 准备页面数据、状态或 DOM 访问函数。
+  const t = byId(state.order[state.i]); const attackedLeft = state.side[t.id] === "L";
+  // 更新页面控件或展示的数据。
+  $("imgL").src = attackedLeft ? t.a : t.c; $("imgRt").src = attackedLeft ? t.c : t.a; $("imgR0").src = t.r;
+  // 遍历试题、指标或页面选项。
+  for (const b of ["pickL", "pickN", "pickR"]) $(b).disabled = false;
+  // 根据当前答题或视图状态更新页面。
+  if (state.answers[t.id]) reveal(t);
+  // 完成当前视图的状态更新或数据计算。
+  sizeHint();
+}
+  // 定义一项页面交互或数据呈现操作。
+function reveal(t) {
+  // 准备页面数据、状态或 DOM 访问函数。
+  const ans = state.answers[t.id]; const attackedSide = state.side[t.id];
+  // 准备页面数据、状态或 DOM 访问函数。
+  const where = attackedSide === "L" ? "左边" : "右边";
+  // 准备页面数据、状态或 DOM 访问函数。
+  const o = $("outcome");
+  if (ans === "N") { o.textContent = `你选了"看不出"。被攻击的是${where}那张。`; o.className = "dk"; } // 对“看不出”答案显示中立反馈。
+  else if (ans === attackedSide) { o.textContent = `指对了：被攻击的是${where}那张。`; o.className = "ok"; } // 选择攻击图时显示答对反馈。
+  else { o.textContent = `指错了：被攻击的是${where}那张，你选的是对照模型。`; o.className = "no"; } // 选择对照图时显示答错反馈。
+  // 更新页面控件或展示的数据。
+  $("rv-cat").textContent = "按指标的判定：" + t.verdict;
+  $("rv-point").textContent = pointName(t) + ` · 视角 ${t.view}`; // 显示该题的攻击配置和视角编号。
+  // 更新页面控件或展示的数据。
+  $("rv-table").innerHTML = metricTable(t);
+  // 遍历试题、指标或页面选项。
+  for (const b of ["pickL", "pickN", "pickR"]) $(b).disabled = true;
+  // 更新页面控件或展示的数据。
+  $("reveal").hidden = false;
+}
+  // 定义一项页面交互或数据呈现操作。
+function answer(a) {
+  // 根据当前答题或视图状态更新页面。
+  if (state.i >= state.order.length) return;
+  // 准备页面数据、状态或 DOM 访问函数。
+  const t = byId(state.order[state.i]); if (state.answers[t.id]) return;
+  // 完成当前视图的状态更新或数据计算。
+  state.answers[t.id] = a; save(); reveal(t);
+}
+  // 定义一项页面交互或数据呈现操作。
+function next() { if (state.i < state.order.length && state.answers[state.order[state.i]]) { state.i++; save(); showTrial(); window.scrollTo({top: 0}); } }
+  // 定义一项页面交互或数据呈现操作。
+function tally(rows) {
+  // 准备页面数据、状态或 DOM 访问函数。
+  const r = {ok: 0, no: 0, dk: 0, n: rows.length, seen: 0};
+  // 遍历试题、指标或页面选项。
+  for (const t of rows) { const a = state.answers[t.id]; if (!a) continue; r.seen++; if (a === "N") r.dk++; else if (a === state.side[t.id]) r.ok++; else r.no++; }
+  // 返回当前计算或渲染结果。
+  return r;
+}
+function scoreRow(name, r) { return `<tr><td>${name}</td><td>${r.ok}</td><td>${r.no}</td><td>${r.dk}</td><td>${r.seen} / ${r.n}</td></tr>`; } // 将一个类别或攻击点的答题统计格式化为表格行。
+  // 定义一项页面交互或数据呈现操作。
+function showScore() {
+  // 准备页面数据、状态或 DOM 访问函数。
+  const head = "<tr><th></th><th>指对</th><th>指错</th><th>看不出</th><th>已看 / 共</th></tr>";
+  // 准备页面数据、状态或 DOM 访问函数。
+  let h = head;
+  // 遍历试题、指标或页面选项。
+  for (const c of ["疑似对抗样本", "真实退化", "推不动"]) h += scoreRow(c, tally(TRIALS.filter(t => t.verdict === c)));
+  // 更新页面控件或展示的数据。
+  $("sc-cat").innerHTML = h;
+  // 准备页面数据、状态或 DOM 访问函数。
+  const groups = new Map();
+  // 遍历试题、指标或页面选项。
+  for (const t of TRIALS) { const k = pointName(t); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(t); }
+  // 完成当前视图的状态更新或数据计算。
+  h = head.replace("<th></th>", "<th>点（按指标的判定）</th>");
+  for (const [k, rows] of groups) h += scoreRow(`${k}（${rows[0].verdict}）`, tally(rows)); // 按攻击点显示分类结果和已完成题数。
+  // 更新页面控件或展示的数据。
+  $("sc-point").innerHTML = h;
+}
+  // 准备页面数据、状态或 DOM 访问函数。
+let filter = "疑似对抗样本";
+  // 定义一项页面交互或数据呈现操作。
+function showGallery() {
+  // 准备页面数据、状态或 DOM 访问函数。
+  const f = $("filters"); f.innerHTML = "";
+  // 遍历试题、指标或页面选项。
+  for (const c of ["疑似对抗样本", "真实退化", "推不动", "全部"]) {
+  // 准备页面数据、状态或 DOM 访问函数。
+    const b = document.createElement("button"); b.className = "tab"; b.textContent = c; b.setAttribute("aria-selected", String(c === filter));
+  // 完成当前视图的状态更新或数据计算。
+    b.onclick = () => { filter = c; showGallery(); }; f.appendChild(b);
+  }
+  // 准备页面数据、状态或 DOM 访问函数。
+  const g = $("gallery"); g.innerHTML = "";
+  // 遍历试题、指标或页面选项。
+  for (const t of TRIALS.filter(t => filter === "全部" || t.verdict === filter)) {
+  // 准备页面数据、状态或 DOM 访问函数。
+    const d = document.createElement("div"); d.className = "gitem";
+    // 生成显示攻击点、指标变化和图像路径的 HTML 字符串，字符串内容保持为页面输出。
+    d.innerHTML = `<div class="ghead"><span class="gt">${pointName(t)}</span><span class="chip">${t.verdict}</span><span class="note">视角 ${t.view}；PSNR ${t.m.psnr[0].toFixed(2)} → ${t.m.psnr[1].toFixed(2)} dB，SSIM ${t.m.ssim[0].toFixed(3)} → ${t.m.ssim[1].toFixed(3)}，LPIPS ${t.m.lpips_vgg[0].toFixed(3)} → ${t.m.lpips_vgg[1].toFixed(3)}，DreamSim ${t.m.dreamsim[0].toFixed(3)} → ${t.m.dreamsim[1].toFixed(3)}</span><button class="swap">切换：把对照图换成被攻击的图</button></div>
+      <div class="stage"><figure><img loading="lazy" src="${t.c}" alt="对照模型"><figcaption>对照模型</figcaption></figure><figure class="ref"><img loading="lazy" src="${t.r}" alt="参考图"><figcaption>参考图</figcaption></figure><figure><img loading="lazy" src="${t.a}" alt="被攻击的模型"><figcaption>被攻击的模型</figcaption></figure></div>`; // 在图集中并排展示对照图、参考图和攻击图。
+  // 准备页面数据、状态或 DOM 访问函数。
+    const btn = d.querySelector(".swap"), img = d.querySelector("figure img"), cap = d.querySelector("figure figcaption"); let on = false;
+  // 完成当前视图的状态更新或数据计算。
+    btn.onclick = () => { on = !on; img.src = on ? t.a : t.c; cap.textContent = on ? "被攻击的模型（已切换）" : "对照模型"; btn.textContent = on ? "切换：换回对照图" : "切换：把对照图换成被攻击的图"; };
+  // 完成当前视图的状态更新或数据计算。
+    g.appendChild(d);
+  }
+}
+  // 准备页面数据、状态或 DOM 访问函数。
+let lad = {s: 0, v: 0, l: 0, mid: "zero"};
+  // 定义一项页面交互或数据呈现操作。
+function showLadder() {
+  // 根据当前答题或视图状态更新页面。
+  if (!LADDER) return;
+  // 准备页面数据、状态或 DOM 访问函数。
+  const S = LADDER[lad.s]; lad.v = Math.min(lad.v, S.views.length - 1); lad.l = Math.min(lad.l, S.levels.length - 1);
+  // 准备页面数据、状态或 DOM 访问函数。
+  const V = S.views[lad.v], L = S.levels[lad.l];
+  // 准备页面数据、状态或 DOM 访问函数。
+  const sc = $("ld-scenes"); sc.innerHTML = "";
+  // 完成当前视图的状态更新或数据计算。
+  LADDER.forEach((x, i) => { const b = document.createElement("button"); b.className = "tab"; b.textContent = x.scene; b.setAttribute("aria-selected", String(i === lad.s));
+  // 完成当前视图的状态更新或数据计算。
+    b.onclick = () => { lad.s = i; lad.l = LADDER[i].start; lad.v = 0; showLadder(); }; sc.appendChild(b); });
+  // 准备页面数据、状态或 DOM 访问函数。
+  const lv = $("ld-levels"); lv.innerHTML = "";
+  S.levels.forEach((x, i) => { const b = document.createElement("button"); b.className = "tab"; b.textContent = `γ = ${x.gamma} · ${x.verdict}`; b.setAttribute("aria-selected", String(i === lad.l)); // 为每个推力档生成按钮并突出当前选中的档位。
+  // 完成当前视图的状态更新或数据计算。
+    b.onclick = () => { lad.l = i; showLadder(); }; lv.appendChild(b); });
+  // 更新页面控件或展示的数据。
+  $("ld-ref").src = V.ref; $("ld-mid").src = lad.mid === "zero" ? V.zero : V.control; $("ld-att").src = V.levels[lad.l];
+  // 更新页面控件或展示的数据。
+  $("ld-midcap").textContent = lad.mid === "zero" ? "不加攻击（γ = 0）" : "原始对照模型";
+  // 更新页面控件或展示的数据。
+  $("ld-midswap").textContent = lad.mid === "zero" ? "左图换成原始对照模型" : "左图换回不加攻击的模型";
+  $("ld-attcap").textContent = `γ = ${L.gamma} · ${L.verdict}`; // 显示当前攻击推力及其守住判定。
+  $("ld-view").textContent = S.views.length > 1 ? `换另一个视角（现在是视角 ${V.view}）` : `视角 ${V.view}`; // 说明当前视角并提供切换提示。
+  // 准备页面数据、状态或 DOM 访问函数。
+  let h = "<tr><th>γ</th><th>判定</th><th>以 γ = 0 为基准</th><th>PSNR / SSIM / LPIPS 变差 ÷ 阈值</th><th>DreamSim z</th><th>纯色偏 RMS（÷ 噪声底）</th><th>低频差 &gt; 6 级的面积</th><th>纯色偏 &gt; 6 级的面积</th><th>来源</th></tr>";
+  // 完成当前视图的状态更新或数据计算。
+  S.levels.forEach((x, i) => { const cur = i === lad.l ? ' style="font-weight:600"' : ""; // 遍历推力档并准备突出当前档位的表格样式。
+    h += `<tr${cur}><td>${x.gamma}</td><td>${x.verdict}</td><td>${x.verdict_g0}</td><td>${x.held.map(v => (v >= 0 ? "+" : "") + v.toFixed(1)).join(" / ")}</td><td>${x.z.toFixed(1)}</td><td>${x.chroma.toFixed(2)}（${x.cof.toFixed(1)}）</td><td>${(100 * x.area6).toFixed(1)}%</td><td>${(100 * x.areac6).toFixed(1)}%</td><td>${x.src}</td></tr>`; }); // 汇总该档指标变化、DreamSim 变化、色偏和来源。
+  h += `<tr><td>噪声底</td><td colspan="4" style="text-align:left">同场景攻击 FLIP、没有推动的那次运行</td><td>${S.floor.chroma.toFixed(2)}（1.0）</td><td>${(100 * S.floor.area6).toFixed(1)}%</td><td>${(100 * S.floor.areac6).toFixed(1)}%</td><td></td></tr>`; // 在表格末尾加入该场景的色偏噪声底。
+  // 更新页面控件或展示的数据。
+  $("ld-table").innerHTML = h;
+}
+  // 定义一项页面交互或数据呈现操作。
+function sizeHint() {
+  // 准备页面数据、状态或 DOM 访问函数。
+  const w = $("imgL").getBoundingClientRect().width;
+  $("sizehint").textContent = w && w < 500 ? `图被缩小到 ${Math.round(w)} 像素宽（原图 512）；把窗口拉宽到约 1600 像素可以按原始像素看` : "按原始像素显示"; // 根据实际显示宽度提示图像是否按原始像素呈现。
+}
+  // 定义一项页面交互或数据呈现操作。
+function tab(name) {
+  // 遍历试题、指标或页面选项。
+  for (const n of ["test", "score", "gallery", "ladder"]) { $("view-" + n).hidden = n !== name; $("tab-" + n).setAttribute("aria-selected", String(n === name)); }
+  // 根据当前答题或视图状态更新页面。
+  if (name === "score") showScore(); if (name === "gallery") showGallery(); if (name === "test") showTrial(); if (name === "ladder") showLadder();
+}
+  // 定义一项页面交互或数据呈现操作。
+function start() {
+  // 完成当前视图的状态更新或数据计算。
+  state = load();
+  // 更新页面控件或展示的数据。
+  $("tab-test").onclick = () => tab("test"); $("tab-score").onclick = () => tab("score"); $("tab-gallery").onclick = () => tab("gallery");
+  // 更新页面控件或展示的数据。
+  $("pickL").onclick = () => answer("L"); $("pickR").onclick = () => answer("R"); $("pickN").onclick = () => answer("N"); $("next").onclick = next;
+  // 更新页面控件或展示的数据。
+  $("reset").onclick = () => { state = fresh(); save(); tab("test"); };
+  // 根据当前答题或视图状态更新页面。
+  if (LADDER) {
+  // 更新页面控件或展示的数据。
+    $("tab-ladder").hidden = false; $("tab-ladder").onclick = () => tab("ladder"); lad.l = LADDER[0].start;
+  // 更新页面控件或展示的数据。
+    $("ld-view").onclick = () => { lad.v = (lad.v + 1) % LADDER[lad.s].views.length; showLadder(); };
+  // 更新页面控件或展示的数据。
+    $("ld-midswap").onclick = () => { lad.mid = lad.mid === "zero" ? "control" : "zero"; showLadder(); };
+  }
+  // 绑定浏览器事件或读取页面元素。
+  document.addEventListener("keydown", e => {
+  // 根据当前答题或视图状态更新页面。
+    if (LADDER && !$("view-ladder").hidden) {
+  // 准备页面数据、状态或 DOM 访问函数。
+      const n = LADDER[lad.s].levels.length;
+  // 根据当前答题或视图状态更新页面。
+      if (e.key === "ArrowLeft") { lad.l = Math.max(0, lad.l - 1); showLadder(); } else if (e.key === "ArrowRight") { lad.l = Math.min(n - 1, lad.l + 1); showLadder(); }
+  // 完成当前视图的状态更新或数据计算。
+      return;
+    }
+  // 根据当前答题或视图状态更新页面。
+    if ($("view-test").hidden) return;
+  // 根据当前答题或视图状态更新页面。
+    if (e.key === "ArrowLeft") answer("L"); else if (e.key === "ArrowRight") answer("R"); else if (e.key === "ArrowDown") { e.preventDefault(); answer("N"); } else if (e.key === "Enter") next();
+  });
+  // 绑定浏览器事件或读取页面元素。
+  window.addEventListener("resize", sizeHint);
+  // 更新页面控件或展示的数据。
+  $("imgL").addEventListener("load", sizeHint);
+  // 完成当前视图的状态更新或数据计算。
+  showTrial();
+}
+  // 初始化页面并显示第一道盲测题。
+start();
+</script>

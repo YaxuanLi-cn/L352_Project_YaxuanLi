@@ -1,0 +1,6 @@
+D gsqa/truck front:triplet:dreamsim:0.05 1
+D gsqa/truck front:default:dists:0.05 1
+E gsqa/truck front:psnr:dreamsim:0.05 0
+E mip360/bonsai front:default:dreamsim:0.05 0
+X gsqa/truck front:triplet:dreamsim:0.0125 0
+X mip360/garden front:triplet:dreamsim:0.0125 0
