@@ -1,0 +1,15 @@
+#!/bin/bash
+. "$(dirname "$0")/env.sh" || exit 1
+while kill -0 "$1" 2>/dev/null; do sleep 30; done
+echo "$(date '+%m-%d %H:%M:%S') seed worker $1 finished (chain $2)"
+P=$E7/configs/pilot.yaml
+R=$E4/configs/rerun.yaml
+if [ "$2" = "1" ]; then
+  python $E7/render_seeds.py $P $R
+  python $E4/rerun_finetune.py $R
+  python $E7/train_seeds.py $P
+  python $E7/render_seeds.py $P $R
+else
+  python $E4/rerun_finetune.py $R --reverse
+fi
+echo "$(date '+%m-%d %H:%M:%S') CHAIN $2 FINISHED"

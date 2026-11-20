@@ -1,0 +1,21 @@
+scenes: [gsqa/truck, gsqa/train, gsqa/playground2, gsqa/flowers, mip360/kitchen, mip360/bonsai, mip360/garden, mip360/bicycle]
+loss_runs_root: data/experiments/e4_self_overrating/original_run/runs
+loss_stimuli_root: data/experiments/e4_self_overrating/original_run/stimuli
+base_ckpt_root: data/experiments/e4_self_overrating/stage_a_ckpt
+base_seed: 42
+loss_seeds: {default: [0], gsqa/truck: [0, 1, 2]}
+seed_target: 4
+extra_seeds: [43, 44, 45, 46]
+extra_seeds_by_scene:
+  gsqa/truck: [45, 46, 47, 48]
+existing_seed_ckpts: data/experiments/e4_self_overrating/stage_a_ckpt
+new_seed_ckpts: data/experiments/e7_uncertainty_strata/ckpt_seeds
+stage_a_steps: 30000
+tile: 192
+quintiles: 5
+pixel_sigma: 4.0
+max_heldout_views: 60
+train_views: 30
+train_view_seed: 0
+psnr_cap: 60.0
+bootstrap: 2000
